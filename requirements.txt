@@ -1,4 +1,8 @@
-fastapi==0.109.0
-uvicorn==0.27.0
-pydantic==2.5.3
-...and others
+fastapi
+uvicorn
+python-multipart
+langchain-google-genai
+langchain-groq
+langchain-core
+pydantic
+python-dotenv
