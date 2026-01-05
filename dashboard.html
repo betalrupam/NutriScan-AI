@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NutriScan AI – Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+    --primary:#6366f1;
+    --success:#10b981;
+    --warning:#f59e0b;
+    --danger:#ef4444;
+    --bg:#020617;
+    --sidebar:#0f172a;
+    --card:#ffffff;
+    --text:#1e293b;
+}
+
+/* RESET */
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    height:100vh;
+    display:flex;
+    overflow:hidden; /* Prevent body scroll, use inner scroll */
+}
+
+/* SIDEBAR */
+.sidebar {
+    width: 260px;
+    background: var(--sidebar);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    padding: 30px;
+    border-right: 1px solid #1e293b;
+    transition: 0.3s;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 50px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nav-links { list-style: none; flex: 1; }
+.nav-links li { margin-bottom: 15px; }
+.nav-links a {
+    text-decoration: none;
+    color: #94a3b8;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    transition: .3s;
+}
+.nav-links a:hover, .nav-links a.active {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--primary);
+}
+
+.user-profile {
+    border-top: 1px solid #334155;
+    padding-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.avatar {
+    width: 40px; height: 40px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold;
+}
+.logout-btn {
+    background: none; border: none;
+    color: #ef4444; cursor: pointer;
+    font-size: 0.9rem; margin-top: 5px;
+}
+
+/* MAIN CONTENT */
+.main-content {
+    flex: 1;
+    overflow-y: auto; /* Scrollable content */
+    padding: 40px;
+    background: linear-gradient(135deg, #020617, #1e1b4b);
+}
+
+.header-welcome {
+    color: white;
+    margin-bottom: 30px;
+}
+.header-welcome h1 { font-size: 2rem; }
+.header-welcome p { opacity: 0.7; }
+
+/* --- REUSED STYLES FROM YOUR ORIGINAL CODE --- */
+
+.container { max-width: 900px; margin: 0 auto; }
+
+.card {
+    background: var(--card);
+    color: var(--text);
+    border-radius: 22px;
+    padding: 35px;
+    margin-bottom: 30px;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+}
+
+/* UPLOAD */
+.upload {
+    border: 2px dashed #c7d2fe;
+    border-radius: 18px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: .3s;
+    display: block;
+}
+.upload:hover { border-color: var(--primary); background: #eef2ff; }
+.upload input { display: none; }
+
+.preview img {
+    max-height: 230px;
+    border-radius: 14px;
+    margin-top: 20px;
+}
+
+/* BUTTON */
+.btn {
+    display: block; width: 100%; max-width: 280px; margin: 25px auto 0;
+    padding: 14px; border: none; border-radius: 40px;
+    background: linear-gradient(135deg, var(--primary), #9333ea);
+    color: white; font-size: 1rem; font-weight: 600; cursor: pointer;
+}
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* GRID */
+.grid { display: grid; gap: 30px; }
+@media(min-width:768px) { .grid { grid-template-columns: 1.5fr 1fr; } }
+
+.badge {
+    display: inline-block; background: #eef2ff; color: var(--primary);
+    padding: 6px 14px; border-radius: 20px; font-weight: 600;
+}
+
+/* SCORE */
+.score {
+    width: 170px; height: 170px; border-radius: 50%; margin: auto;
+    display: flex; align-items: center; justify-content: center;
+    background: #e5e7eb;
+}
+.score div {
+    background: white; width: 125px; height: 125px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+
+.alert {
+    background: #fee2e2; color: #b91c1c; padding: 12px 16px;
+    border-radius: 12px; margin-bottom: 18px; display: none;
+}
+
+.loader {
+    border: 4px solid #e5e7eb; border-top: 4px solid var(--primary);
+    border-radius: 50%; width: 40px; height: 40px;
+    animation: spin 1s linear infinite; margin: 15px auto; display: none;
+}
+@keyframes spin { to { transform: rotate(360deg) } }
+
+.chem-grid {
+    display: grid; gap: 28px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.chem {
+    background: #f8fafc; border-radius: 20px; padding: 26px;
+    min-height: 260px; display: flex; flex-direction: column;
+    justify-content: space-between; transition: .3s;
+}
+.chem:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(0,0,0,0.12); }
+.progress {
+    height: 8px; background: #e5e7eb; border-radius: 10px; margin-top: 12px;
+}
+.progress span { display: block; height: 100%; border-radius: 10px; }
+
+.hidden { display: none; }
+.center { text-align: center; }
+
+/* Responsive Sidebar for Mobile */
+@media(max-width: 768px) {
+    body { flex-direction: column; overflow: auto; }
+    .sidebar { width: 100%; padding: 20px; flex-direction: row; align-items: center; justify-content: space-between; }
+    .nav-links, .user-profile p { display: none; }
+    .main-content { padding: 20px; }
+}
+</style>
+</head>
+
+<body>
+
+    <nav class="sidebar">
+        <div class="logo">🥗 NutriScan</div>
+        <ul class="nav-links">
+            <li><a href="#" class="active">📸 New Scan</a></li>
+            <li><a href="#">📊 History</a></li>
+            <li><a href="#">⚙️ Settings</a></li>
+        </ul>
+        <div class="user-profile">
+            <div class="avatar">U</div>
+            <div>
+                <p id="userEmail">user@example.com</p>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="header-welcome">
+                <h1>Dashboard</h1>
+                <p>Analyze your food safety instantly.</p>
+            </div>
+
+            <div class="card">
+                <div class="alert" id="alertBox"></div>
+            
+                <label class="upload">
+                    <input type="file" id="fileInput" accept="image/*">
+                    <h3>📸 Upload Food Label</h3>
+                    <p>JPG or PNG supported</p>
+            
+                    <div class="preview hidden">
+                        <img id="previewImg">
+                    </div>
+                </label>
+            
+                <div class="loader" id="loader1"></div>
+                <button class="btn" id="analyzeBtn">Analyze Nutrition</button>
+            </div>
+            
+            <div class="card hidden" id="basicCard">
+                <div class="grid">
+                    <div>
+                        <span class="badge">Calories</span>
+                        <h2 id="calories">--</h2>
+                        <p id="overview"></p>
+                        <p style="margin-top:10px;"><strong>⚠ Note:</strong> <span id="note"></span></p>
+                    </div>
+            
+                    <div class="center">
+                        <div class="score" id="scoreCircle">
+                            <div>
+                                <h2 id="score">0</h2>
+                                <small>Health Score</small>
+                            </div>
+                        </div>
+                        <p id="feedback" style="margin-top:10px; font-weight:500;"></p>
+                    </div>
+                </div>
+            
+                <button class="btn" id="chemBtn">Analyze Chemicals</button>
+            </div>
+            
+            <div class="card hidden" id="chemCard">
+                <h2 class="center" style="margin-bottom:20px;">🔬 Chemical Breakdown</h2>
+                <div class="chem-grid" id="chemGrid"></div>
+            </div>
+        </div>
+    </main>
+
+<script>
+    // --- AUTH CHECK ---
+    const user = localStorage.getItem('user');
+    if(!user) window.location.href = 'index.html';
+    document.getElementById('userEmail').innerText = user;
+
+    function logout() {
+        localStorage.removeItem('user');
+        window.location.href = 'index.html';
+    }
+
+    // --- EXISTING SCANNER LOGIC ---
+    const API="http://127.0.0.1:8000"; // Ensure your Python backend is running
+    let file=null;
+
+    const alertBox = document.getElementById('alertBox');
+    const fileInput = document.getElementById('fileInput');
+    const previewImg = document.getElementById('previewImg');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const loader1 = document.getElementById('loader1');
+    const basicCard = document.getElementById('basicCard');
+    const chemCard = document.getElementById('chemCard');
+    
+    // Output Elements
+    const calories = document.getElementById('calories');
+    const overview = document.getElementById('overview');
+    const note = document.getElementById('note');
+    const feedback = document.getElementById('feedback');
+    const scoreText = document.getElementById('score');
+    const scoreCircle = document.getElementById('scoreCircle');
+    const chemBtn = document.getElementById('chemBtn');
+    const chemGrid = document.getElementById('chemGrid');
+
+    function showError(msg){
+        alertBox.innerText=msg;
+        alertBox.style.display="block";
+        setTimeout(()=>alertBox.style.display="none",4000);
+    }
+
+    fileInput.onchange=e=>{
+        file=e.target.files[0];
+        if(!file) return;
+        previewImg.src=URL.createObjectURL(file);
+        document.querySelector('.preview').classList.remove('hidden');
+    };
+
+    function color(score){
+        if(score>=7.5) return "var(--success)";
+        if(score>=4) return "var(--warning)";
+        return "var(--danger)";
+    }
+
+    function animateScore(circle,score){
+        let val=0;
+        const timer=setInterval(()=>{
+            val++;
+            circle.style.background=
+            `conic-gradient(${color(score)} ${(val/10)*100}%,#e5e7eb 0)`;
+            if(val>=score*10) clearInterval(timer);
+        },10);
+    }
+
+    /* ========== BASIC DATA ========== */
+    analyzeBtn.onclick=async()=>{
+        try{
+            if(!file) return showError("Upload image first");
+
+            analyzeBtn.disabled=true;
+            loader1.style.display="block";
+
+            const fd=new FormData();
+            fd.append("file",file);
+
+            const res=await fetch(`${API}/basicdata`,{method:"POST",body:fd});
+            if(!res.ok) throw new Error("API Error: Ensure Backend is running");
+
+            const d=await res.json();
+
+            basicCard.classList.remove("hidden");
+
+            calories.innerText=d.totalCal || "--";
+            overview.innerText=d.overView;
+            note.innerText=d.specialNote;
+            feedback.innerText=d.feedback;
+
+            const s=d.rating||0;
+            scoreText.innerText=s;
+            animateScore(scoreCircle,s);
+            
+            // Scroll to results
+            basicCard.scrollIntoView({behavior: "smooth"});
+        }
+        catch(e){
+            showError(e.message);
+        }
+        finally{
+            analyzeBtn.disabled=false;
+            loader1.style.display="none";
+        }
+    };
+
+    /* ========== CHEMICAL DATA ========== */
+    chemBtn.onclick=async()=>{
+        try{
+            chemBtn.disabled=true;
+            chemBtn.innerText = "Analyzing Chemicals...";
+
+            const fd=new FormData();
+            fd.append("file",file);
+
+            const res=await fetch(`${API}/specialdata`,{method:"POST",body:fd});
+            if(!res.ok) throw new Error("API Error");
+
+            const d=await res.json();
+
+            chemCard.classList.remove("hidden");
+            chemGrid.innerHTML="";
+
+            (d.chemicals || []).forEach(c=>{
+                const col=color(c.rating);
+
+                chemGrid.innerHTML+=`
+                <div class="chem">
+                    <h3>🔬 Chemical Details</h3>
+                    <h4>${c.compoundName} (${c.rating}/10)</h4>
+                    <p style="margin-bottom:8px"><strong>Description:</strong><br>${c.Describe}</p>
+                    <p style="margin-bottom:8px"><strong>Effects:</strong><br>${c.EffectOnBody}</p>
+                    <p><strong>Targets:</strong><br>${c.MostlyTargetPeople}</p>
+                    <div class="progress">
+                        <span style="width:${c.rating*10}%;background:${col}"></span>
+                    </div>
+                </div>`;
+            });
+            chemCard.scrollIntoView({behavior: "smooth"});
+        }
+        catch(e){
+            showError(e.message);
+        }
+        finally{
+            chemBtn.disabled=false;
+            chemBtn.innerText = "Analyze Chemicals";
+        }
+    };
+</script>
+
+</body>
+</html>
